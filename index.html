@@ -139,7 +139,17 @@
     }
 
     @media (max-width: 600px) {
+      .app { padding: 8px; }
       h1 { font-size: 1.2rem; }
+      .card { padding: 10px 10px; }
+      table { border-collapse: separate; border-spacing: 0 8px; }
+      tr { border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+      th, td { padding: 6px 4px; font-size: 0.8rem; }
+      td:nth-child(1) { text-align: left; font-weight: 600; }
+      td:nth-child(5) { text-align: left; }
+      .btn-small { width: 46%; margin: 4px 2% 2px; }
+      .qty-input { width: 72px; }
+    }
       .card { padding: 10px 10px; }
       th, td { padding: 6px 4px; }
     }
@@ -181,7 +191,7 @@
           <th>品名</th>
           <th>当前库存</th>
           <th>安全库存</th>
-          <th>确认出库</th>
+          <th>出库</th>
           <th>操作</th>
         </tr>
         </thead>
@@ -321,11 +331,11 @@
       tdName.textContent = item.name;
 
       var tdStock = document.createElement('td');
-      tdStock.textContent = item.stock;
+      tdStock.textContent = '库存：' + item.stock;
       tdStock.classList.add('stock');
 
       var tdThr = document.createElement('td');
-      tdThr.textContent = item.threshold;
+      tdThr.textContent = '安全：' + item.threshold;
 
       var tdTake = document.createElement('td');
       var input = document.createElement('input');
@@ -339,7 +349,7 @@
 
       var btnTake = document.createElement('button');
       btnTake.className = 'btn-small';
-      btnTake.textContent = '确认出库';
+      btnTake.textContent = '出库';
       btnTake.onclick = function() {
         var val = Number(input.value);
         if (!val || val <= 0) return;
@@ -355,7 +365,7 @@
 
       var btnReset = document.createElement('button');
       btnReset.className = 'btn-small secondary';
-      btnReset.textContent = '修改库存';
+      btnReset.textContent = '入库';
       btnReset.style.marginLeft = '4px';
       btnReset.onclick = function() {
         if (tdAction.querySelector('.edit-stock-wrapper')) {
@@ -458,7 +468,7 @@
 
       var btnRename = document.createElement('button');
       btnRename.className = 'btn-small secondary';
-      btnRename.textContent = '修改品名';
+      btnRename.textContent = '改名';
       btnRename.style.marginLeft = '4px';
       btnRename.onclick = function() {
         renameItem(item.name);
@@ -466,7 +476,7 @@
 
       var btnDelete = document.createElement('button');
       btnDelete.className = 'btn-small danger';
-      btnDelete.textContent = '删除品项';
+      btnDelete.textContent = '删除';
       btnDelete.style.marginLeft = '4px';
       btnDelete.onclick = function() {
         deleteItem(item.name);
