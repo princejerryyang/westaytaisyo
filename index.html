@@ -1,175 +1,79 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <title>消耗品库存记录表</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
-      background: #f5f5f7;
-      color: #111827;
-    }
-    .app { max-width: 900px; margin: 0 auto; padding: 16px; }
-    h1 { font-size: 1.4rem; margin-bottom: 8px; }
-    .subtitle { font-size: 0.9rem; color: #6b7280; margin-bottom: 16px; }
-    .card {
-      background: #ffffff;
-      border-radius: 12px;
-      padding: 12px 14px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.04);
-      margin-bottom: 16px;
-    }
-    .form-row { display: flex; flex-wrap: wrap; gap: 8px; }
-    .field { flex: 1 1 90px; min-width: 90px; }
-    .field label {
-      display: block;
-      font-size: 0.75rem;
-      color: #6b7280;
-      margin-bottom: 4px;
-    }
-    .field input {
-      width: 100%;
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: 1px solid #d1d5db;
-      font-size: 0.9rem;
-      outline: none;
-    }
-    .field input:focus {
-      border-color: #2563eb;
-      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.2);
-    }
-    button.primary {
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: none;
-      background: #2563eb;
-      color: #ffffff;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 18px;
-      flex-shrink: 0;
-    }
-    button.primary:active { opacity: 0.8; }
-    .table-wrapper { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    thead { background: #f3f4f6; }
-    th, td {
-      padding: 8px 6px;
-      text-align: center;
-      border-bottom: 1px solid #e5e7eb;
-      white-space: nowrap;
-    }
-    th {
-      font-weight: 600;
-      color: #4b5563;
-      position: sticky;
-      top: 0;
-      background: #f3f4f6;
-      z-index: 1;
-    }
-    tr.low-stock { background: #fef2f2; color: #b91c1c; }
-    tr.low-stock td.stock { font-weight: 700; }
-    .qty-input {
-      width: 72px;
-      padding: 6px 8px;
-      border-radius: 6px;
-      border: 1px solid #d1d5db;
-      font-size: 0.85rem;
-    }
-    .btn-small {
-      padding: 6px 10px;
-      border-radius: 8px;
-      border: none;
-      background: #10b981;
-      color: #ffffff;
-      font-size: 0.8rem;
-      cursor: pointer;
-      margin-top: 2px;
-    }
-    .btn-small.secondary { background: #6b7280; }
-    .btn-small.danger { background: #ef4444; }
-    .btn-small:active { opacity: 0.85; }
-    .footer-note { font-size: 0.75rem; color: #9ca3af; margin-top: 8px; }
-  </style>
+<meta charset="UTF-8" />
+<title>消耗品库存记录表</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;background:#f5f5f7;color:#111827;}
+  .app{max-width:900px;margin:0 auto;padding:16px;}
+  h1{font-size:1.4rem;margin-bottom:8px;}
+  .subtitle{font-size:0.9rem;color:#6b7280;margin-bottom:16px;}
+  .card{background:#fff;border-radius:12px;padding:12px 14px;box-shadow:0 4px 10px rgba(0,0,0,.04);margin-bottom:16px;}
+  .form-row{display:flex;flex-wrap:wrap;gap:8px;}
+  .field{flex:1 1 90px;min-width:90px;}
+  .field label{display:block;font-size:0.75rem;color:#6b7280;margin-bottom:4px;}
+  .field input{width:100%;padding:8px 10px;border-radius:8px;border:1px solid #d1d5db;font-size:0.9rem;outline:none;}
+  .field input:focus{border-color:#2563eb;box-shadow:0 0 0 1px rgba(37,99,235,.2);}
+  button.primary{padding:10px 14px;border-radius:10px;border:none;background:#2563eb;color:#fff;font-size:0.9rem;font-weight:600;cursor:pointer;margin-top:18px;flex-shrink:0;}
+  button.primary:active{opacity:.8;}
+  table{width:100%;border-collapse:collapse;font-size:0.85rem;}
+  thead{background:#f3f4f6;}
+  th,td{padding:8px 6px;text-align:center;border-bottom:1px solid #e5e7eb;white-space:nowrap;}
+  th{font-weight:600;color:#4b5563;position:sticky;top:0;background:#f3f4f6;z-index:1;}
+  tr.low-stock{background:#fef2f2;color:#b91c1c;}
+  .qty-input{width:72px;padding:6px 8px;border-radius:6px;border:1px solid #d1d5db;}
+  .btn-small{padding:6px 10px;border-radius:8px;border:none;background:#10b981;color:#fff;font-size:.8rem;cursor:pointer;margin-top:2px;}
+  .btn-small.secondary{background:#6b7280;}
+  .btn-small.danger{background:#ef4444;}
+  @media(max-width:600px){h1{font-size:1.2rem;}th,td{padding:6px 4px;}}
+</style>
 </head>
 <body>
 <div class="app">
-  <h1>消耗品库存记录表</h1>
-  <div class="subtitle">库存≤安全库存时标红，提醒采购</div>
-
-  <div class="card">
-    <div class="form-row">
-      <div class="field">
-        <label>品名</label>
-        <input id="nameInput" type="text" placeholder="卷纸 / 抽纸 / 洗衣液…" />
-      </div>
-      <div class="field">
-        <label>库存</label>
-        <input id="stockInput" type="number" min="0" placeholder="50" />
-      </div>
-      <div class="field">
-        <label>安全库存</label>
-        <input id="thresholdInput" type="number" min="0" placeholder="10" />
-      </div>
-      <button class="primary" id="addBtn">新增/更新</button>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="table-wrapper">
-      <table>
-        <thead><tr><th>品名</th><th>库存</th><th>安全库存</th><th>出库</th><th>操作</th></tr></thead>
-        <tbody id="tableBody"></tbody>
-      </table>
-    </div>
+<h1>消耗品库存记录表</h1>
+<div class="subtitle">多人可同时使用，数据实时同步 Google 表格。</div>
+<div class="card">
+  <div class="form-row">
+    <div class="field"><label>品名</label><input id="nameInput" type="text" placeholder="卷纸/抽纸/洗衣液…" /></div>
+    <div class="field"><label>当前库存</label><input id="stockInput" type="number" placeholder="50" /></div>
+    <div class="field"><label>安全库存</label><input id="thresholdInput" type="number" placeholder="10" /></div>
+    <button class="primary" id="addBtn">新增/更新品类</button>
   </div>
 </div>
 
+<div class="card">
+<table>
+<thead><tr><th>品名</th><th>当前库存</th><th>安全库存</th><th>出库</th><th>操作</th></tr></thead>
+<tbody id="tableBody"></tbody>
+</table>
+</div>
+</div>
+
 <script>
-const API_URL='https://script.google.com/macros/s/AKfycbznMoykHk5eg3v7JIXIohF8Kr4TvyJUcf7jEGGdxfCFbhqTeNt9N7IA2g3PYxjheamntg/exec';
+const SHEET_URL="你的Apps Script链接", STORAGE_KEY="inventory_cache";
 let items=[];
+async function loadItems(){try{const r=await fetch(SHEET_URL+"?action=get");items=await r.json();saveLocal();render();}catch{loadLocal();render();}}
+function saveLocal(){localStorage.setItem(STORAGE_KEY,JSON.stringify(items));}
+function loadLocal(){items=JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]");}
+async function sync(){fetch(SHEET_URL,{method:"POST",body:JSON.stringify(items)});}
 
-function loadItems(){fetch(API_URL+'?t='+Date.now()).then(r=>r.json()).then(d=>{items=d.items||[];renderTable();});}
-function sync(){fetch(API_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({items})});}
-
-function addItem(){let name=nameInput.value.trim(),s=+stockInput.value,t=+thresholdInput.value;
- if(!name)return alert('请输入品名');
- let x=items.find(i=>i.name==name);
- x?(x.stock=s,x.threshold=t):items.push({name,stock:s,threshold:t});
- sync();renderTable();nameInput.value=stockInput.value=thresholdInput.value='';}
-
-function renameItem(oldName){let nn=prompt('修改品名:',oldName);if(!nn)return;
- nn=nn.trim();if(items.some(i=>i.name==nn&&i.name!=oldName))return alert('已存在同名品项');
- items.find(i=>i.name==oldName).name=nn;sync();renderTable();}
-
-function del(name){if(confirm('删除 '+name+'?')){items=items.filter(i=>i.name!=name);sync();renderTable();}}
-
-function take(item,val){if(val>item.stock)return alert('库存不足');item.stock-=val;sync();renderTable();}
-
-function renderTable(){tableBody.innerHTML='';items.forEach(i=>{
- let tr=document.createElement('tr');if(i.stock<=i.threshold)tr.classList.add('low-stock');
- tr.innerHTML=`<td>${i.name}</td><td>${i.stock}</td><td>${i.threshold}</td>
-<td><input type='number' min='0' placeholder='数量' class='qty-input'></td>
+function add(){let name=nameInput.value.trim(),s=+stockInput.value,t=+thresholdInput.value;if(!name)return alert("请输入品名");let f=items.find(i=>i.name===name);f?(f.stock=s,f.threshold=t):items.push({name,stock:s,threshold:t});sync();render();}
+function remove(name){if(!confirm("删除?"))return;items=items.filter(i=>i.name!==name);sync();render();}
+function renameItem(oldName){let n=prompt("输入新的品名",oldName);if(!n)return;n=n.trim();if(items.some(i=>i.name===n&&i.name!==oldName))return alert("已存在同名");let o=items.find(i=>i.name===oldName);o.name=n;sync();render();}
+function output(name,val){let o=items.find(i=>i.name===name);if(val>o.stock)return alert("不足");o.stock-=val;sync();render();}
+function render(){const tb=tableBody;tb.innerHTML="";items.forEach(i=>{let tr=document.createElement("tr");if(i.stock<=i.threshold)tr.classList.add("low-stock");
+tr.innerHTML=`<td>${i.name}</td><td>${i.stock}</td><td>${i.threshold}</td>
+<td><input type='number' min='0' id='out_${i.name}' class='qty-input'><button class='btn-small' onclick='output("${i.name}",+document.getElementById("out_${i.name}").value)'>出库</button></td>
 <td>
-<button class='btn-small' onclick='take(i,this.parentNode.parentNode.querySelector("input").value)'>出库</button>
 <button class='btn-small secondary' onclick='renameItem("${i.name}")'>修改品名</button>
-<button class='btn-small secondary' onclick='promptEdit(i)'>修改库存</button>
-<button class='btn-small danger' onclick='del("${i.name}")'>删除</button>
+<button class='btn-small secondary' onclick='(function(){let v=prompt("修改库存",i.stock);if(v!==null){i.stock=+v;sync();render();}})()'>修改库存</button>
+<button class='btn-small danger' onclick='remove("${i.name}")'>删除</button>
 </td>`;
- tableBody.appendChild(tr);
-});}
-
-function promptEdit(i){let s=+prompt('新库存:',i.stock);if(!isNaN(s))i.stock=s;
- let t=+prompt('新安全库存:',i.threshold);if(!isNaN(t))i.threshold=t;
- sync();renderTable();}
-
-addBtn.onclick=addItem;
-setInterval(loadItems,20000);
+tb.appendChild(tr);});}
+addBtn.onclick=add;
+setInterval(loadItems,15000);
 loadItems();
 </script>
 </body>
