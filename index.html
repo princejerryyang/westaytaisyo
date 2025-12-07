@@ -5,29 +5,16 @@
   <title>消耗品库存记录表</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
       background: #f5f5f7;
       color: #111827;
     }
-    .app {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 16px;
-    }
-    h1 {
-      font-size: 1.4rem;
-      margin-bottom: 8px;
-    }
-    .subtitle {
-      font-size: 0.9rem;
-      color: #6b7280;
-      margin-bottom: 16px;
-    }
+    .app { max-width: 900px; margin: 0 auto; padding: 16px; }
+    h1 { font-size: 1.4rem; margin-bottom: 8px; }
+    .subtitle { font-size: 0.9rem; color: #6b7280; margin-bottom: 16px; }
     .card {
       background: #ffffff;
       border-radius: 12px;
@@ -35,15 +22,8 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.04);
       margin-bottom: 16px;
     }
-    .form-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .field {
-      flex: 1 1 90px;
-      min-width: 90px;
-    }
+    .form-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .field { flex: 1 1 90px; min-width: 90px; }
     .field label {
       display: block;
       font-size: 0.75rem;
@@ -74,21 +54,10 @@
       margin-top: 18px;
       flex-shrink: 0;
     }
-    button.primary:active {
-      opacity: 0.8;
-    }
-
-    .table-wrapper {
-      overflow-x: auto;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-    }
-    thead {
-      background: #f3f4f6;
-    }
+    button.primary:active { opacity: 0.8; }
+    .table-wrapper { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    thead { background: #f3f4f6; }
     th, td {
       padding: 8px 6px;
       text-align: center;
@@ -103,13 +72,8 @@
       background: #f3f4f6;
       z-index: 1;
     }
-    tr.low-stock {
-      background: #fef2f2;
-      color: #b91c1c;
-    }
-    tr.low-stock td.stock {
-      font-weight: 700;
-    }
+    tr.low-stock { background: #fef2f2; color: #b91c1c; }
+    tr.low-stock td.stock { font-weight: 700; }
     .qty-input {
       width: 72px;
       padding: 6px 8px;
@@ -127,36 +91,16 @@
       cursor: pointer;
       margin-top: 2px;
     }
-    .btn-small.secondary {
-      background: #6b7280;
-    }
-    .btn-small:active {
-      opacity: 0.85;
-    }
-    .badge {
-      display: inline-block;
-      padding: 2px 6px;
-      border-radius: 999px;
-      font-size: 0.7rem;
-      color: #374151;
-      background: #e5e7eb;
-    }
-    .footer-note {
-      font-size: 0.75rem;
-      color: #9ca3af;
-      margin-top: 8px;
-    }
-
+    .btn-small.secondary { background: #6b7280; }
+    .btn-small:active { opacity: 0.85; }
+    .footer-note { font-size: 0.75rem; color: #9ca3af; margin-top: 8px; }
     @media (max-width: 600px) {
-      h1 {
-        font-size: 1.2rem;
-      }
-      .card {
-        padding: 10px 10px;
-      }
-      th, td {
-        padding: 6px 4px;
-      }
+      h1 { font-size: 1.2rem; }
+      .card { padding: 10px 10px; }
+      th, td { padding: 6px 4px; }
+    }
+      .btn-small.danger {
+      background: #ef4444;
     }
   </style>
 </head>
@@ -200,9 +144,7 @@
           <th>操作</th>
         </tr>
         </thead>
-        <tbody id="tableBody">
-        <!-- 动态插入 -->
-        </tbody>
+        <tbody id="tableBody"></tbody>
       </table>
     </div>
     <div class="footer-note">
@@ -213,63 +155,71 @@
 </div>
 
 <script>
-  const STORAGE_KEY = 'westay_inventory_v1';
+  const API_URL = 'https://script.google.com/macros/s/AKfycbznMoykHk5eg3v7JIXIohF8Kr4TvyJUcf7jEGGdxfCFbhqTeNt9N7IA2g3PYxjheamntg/exec';
 
   let items = [];
 
   function loadItems() {
-    const data = localStorage.getItem(STORAGE_KEY);
-    if (data) {
-      try {
-        items = JSON.parse(data);
-      } catch (e) {
+    fetch(API_URL + '?t=' + Date.now())
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        items = data.items || [];
+        if (items.length === 0) {
+          items = [
+            { name: '卷纸', stock: 50, threshold: 10 },
+            { name: '抽纸', stock: 20, threshold: 5 },
+            { name: '洗衣液', stock: 20, threshold: 5 }
+          ];
+          syncItems();
+        }
+        renderTable();
+      })
+      .catch(function() {
+        alert('读取库存数据失败，请稍后重试');
         items = [];
-      }
-    } else {
-      // 可以预设几个常用项
-      items = [
-        { name: '卷纸', stock: 50, threshold: 10 },
-        { name: '抽纸', stock: 20, threshold: 5 },
-        { name: '垃圾袋', stock: 10, threshold: 5 }
-      ];
-    }
-    renderTable();
+        renderTable();
+      });
   }
 
-  function saveItems() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  function syncItems() {
+    fetch(API_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: items })
+    });
   }
 
   function addOrUpdateItem() {
-    const name = document.getElementById('nameInput').value.trim();
-    const stockVal = document.getElementById('stockInput').value;
-    const thresholdVal = document.getElementById('thresholdInput').value;
+    var name = document.getElementById('nameInput').value.trim();
+    var stockVal = document.getElementById('stockInput').value;
+    var thresholdVal = document.getElementById('thresholdInput').value;
 
     if (!name) {
       alert('请先填写品名');
       return;
     }
-    const stock = Number(stockVal);
-    const threshold = Number(thresholdVal);
+    var stock = Number(stockVal);
+    var threshold = Number(thresholdVal);
 
-    if (Number.isNaN(stock) || stock < 0) {
+    if (isNaN(stock) || stock < 0) {
       alert('请填写正确的库存数量');
       return;
     }
-    if (Number.isNaN(threshold) || threshold < 0) {
+    if (isNaN(threshold) || threshold < 0) {
       alert('请填写正确的安全库存数量');
       return;
     }
 
-    const existing = items.find(i => i.name === name);
+    var existing = items.find(function(i) { return i.name === name; });
     if (existing) {
       existing.stock = stock;
       existing.threshold = threshold;
     } else {
-      items.push({ name, stock, threshold });
+      items.push({ name: name, stock: stock, threshold: threshold });
     }
 
-    saveItems();
+    syncItems();
     renderTable();
 
     document.getElementById('nameInput').value = '';
@@ -277,51 +227,58 @@
     document.getElementById('thresholdInput').value = '';
   }
 
+  function deleteItem(name) {
+    if (!confirm('确定要删除「' + name + '」这个品项吗？')) return;
+    items = items.filter(function(i) { return i.name !== name; });
+    syncItems();
+    renderTable();
+  }
+
   function renderTable() {
-    const tbody = document.getElementById('tableBody');
+    var tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
 
     if (items.length === 0) {
-      const tr = document.createElement('tr');
-      const td = document.createElement('td');
-      td.colSpan = 5;
-      td.textContent = '尚无品项，请先在上方添加。';
-      td.style.color = '#9ca3af';
-      tr.appendChild(td);
-      tbody.appendChild(tr);
+      var trEmpty = document.createElement('tr');
+      var tdEmpty = document.createElement('td');
+      tdEmpty.colSpan = 5;
+      tdEmpty.textContent = '尚无品项，请先在上方添加。';
+      tdEmpty.style.color = '#9ca3af';
+      trEmpty.appendChild(tdEmpty);
+      tbody.appendChild(trEmpty);
       return;
     }
 
-    items.forEach((item, index) => {
-      const tr = document.createElement('tr');
+    items.forEach(function(item) {
+      var tr = document.createElement('tr');
       if (item.stock <= item.threshold) {
         tr.classList.add('low-stock');
       }
 
-      const tdName = document.createElement('td');
+      var tdName = document.createElement('td');
       tdName.textContent = item.name;
 
-      const tdStock = document.createElement('td');
+      var tdStock = document.createElement('td');
       tdStock.textContent = item.stock;
       tdStock.classList.add('stock');
 
-      const tdThr = document.createElement('td');
+      var tdThr = document.createElement('td');
       tdThr.textContent = item.threshold;
 
-      const tdTake = document.createElement('td');
-      const input = document.createElement('input');
+      var tdTake = document.createElement('td');
+      var input = document.createElement('input');
       input.type = 'number';
       input.min = '0';
       input.placeholder = '数量';
       input.className = 'qty-input';
       tdTake.appendChild(input);
 
-      const tdAction = document.createElement('td');
-      const btnTake = document.createElement('button');
+      var tdAction = document.createElement('td');
+      var btnTake = document.createElement('button');
       btnTake.className = 'btn-small';
       btnTake.textContent = '确认出库';
-      btnTake.onclick = () => {
-        const val = Number(input.value);
+      btnTake.onclick = function() {
+        var val = Number(input.value);
         if (!val || val <= 0) return;
         if (val > item.stock) {
           alert('出库数量大于当前库存，请确认。');
@@ -329,94 +286,91 @@
         }
         item.stock -= val;
         input.value = '';
-        saveItems();
+        syncItems();
         renderTable();
       };
 
-      const btnReset = document.createElement('button');
+      var btnReset = document.createElement('button');
       btnReset.className = 'btn-small secondary';
       btnReset.textContent = '修改库存';
       btnReset.style.marginLeft = '4px';
-      btnReset.onclick = () => {
-        // 行内编辑模式：在本行下方出现“入库 / 修改安全库存”
+      btnReset.onclick = function() {
         if (tdAction.querySelector('.edit-stock-wrapper')) {
-          const inInput = tdAction.querySelector('.stock-in-input');
+          var inInput = tdAction.querySelector('.stock-in-input');
           if (inInput) inInput.focus();
           return;
         }
 
-        const wrapper = document.createElement('div');
+        var wrapper = document.createElement('div');
         wrapper.className = 'edit-stock-wrapper';
         wrapper.style.marginTop = '6px';
         wrapper.style.borderTop = '1px dashed #e5e7eb';
         wrapper.style.paddingTop = '4px';
 
-        // 入库部分
-        const rowIn = document.createElement('div');
+        var rowIn = document.createElement('div');
         rowIn.style.marginTop = '2px';
 
-        const labelIn = document.createElement('span');
+        var labelIn = document.createElement('span');
         labelIn.textContent = '入库数量:';
         labelIn.style.fontSize = '0.75rem';
         labelIn.style.marginRight = '4px';
 
-        const inInput = document.createElement('input');
-        inInput.type = 'number';
-        inInput.min = '0';
-        inInput.placeholder = '数量';
-        inInput.className = 'qty-input stock-in-input';
-        inInput.style.width = '68px';
+        var inInput2 = document.createElement('input');
+        inInput2.type = 'number';
+        inInput2.min = '0';
+        inInput2.placeholder = '数量';
+        inInput2.className = 'qty-input stock-in-input';
+        inInput2.style.width = '68px';
 
-        const inBtn = document.createElement('button');
+        var inBtn = document.createElement('button');
         inBtn.textContent = '入库';
         inBtn.className = 'btn-small';
         inBtn.style.marginLeft = '4px';
 
-        inBtn.onclick = () => {
-          const addVal = Number(inInput.value);
+        inBtn.onclick = function() {
+          var addVal = Number(inInput2.value);
           if (!addVal || addVal <= 0) return;
-          if (Number.isNaN(addVal)) {
+          if (isNaN(addVal)) {
             alert('请输入正确的数字');
             return;
           }
           item.stock += addVal;
-          saveItems();
+          syncItems();
           renderTable();
         };
 
         rowIn.appendChild(labelIn);
-        rowIn.appendChild(inInput);
+        rowIn.appendChild(inInput2);
         rowIn.appendChild(inBtn);
 
-        // 修改安全库存部分
-        const rowThr = document.createElement('div');
+        var rowThr = document.createElement('div');
         rowThr.style.marginTop = '4px';
 
-        const labelThr = document.createElement('span');
+        var labelThr = document.createElement('span');
         labelThr.textContent = '安全库存:';
         labelThr.style.fontSize = '0.75rem';
         labelThr.style.marginRight = '4px';
 
-        const thrInput = document.createElement('input');
+        var thrInput = document.createElement('input');
         thrInput.type = 'number';
         thrInput.min = '0';
         thrInput.value = item.threshold;
         thrInput.className = 'qty-input';
         thrInput.style.width = '68px';
 
-        const thrBtn = document.createElement('button');
+        var thrBtn = document.createElement('button');
         thrBtn.textContent = '修改安全库存';
         thrBtn.className = 'btn-small';
         thrBtn.style.marginLeft = '4px';
 
-        thrBtn.onclick = () => {
-          const newThr = Number(thrInput.value);
-          if (Number.isNaN(newThr) || newThr < 0) {
+        thrBtn.onclick = function() {
+          var newThr = Number(thrInput.value);
+          if (isNaN(newThr) || newThr < 0) {
             alert('请输入正确的数字');
             return;
           }
           item.threshold = newThr;
-          saveItems();
+          syncItems();
           renderTable();
         };
 
@@ -424,15 +378,14 @@
         rowThr.appendChild(thrInput);
         rowThr.appendChild(thrBtn);
 
-        // 取消按钮（关闭整个编辑块）
-        const cancelRow = document.createElement('div');
+        var cancelRow = document.createElement('div');
         cancelRow.style.marginTop = '4px';
 
-        const cancelBtn = document.createElement('button');
+        var cancelBtn = document.createElement('button');
         cancelBtn.textContent = '关闭';
         cancelBtn.className = 'btn-small secondary';
 
-        cancelBtn.onclick = () => {
+        cancelBtn.onclick = function() {
           wrapper.remove();
         };
 
@@ -442,11 +395,20 @@
         wrapper.appendChild(rowThr);
         wrapper.appendChild(cancelRow);
         tdAction.appendChild(wrapper);
-        inInput.focus();
+        inInput2.focus();
+      };
+
+      var btnDelete = document.createElement('button');
+      btnDelete.className = 'btn-small danger';
+      btnDelete.textContent = '删除品项';
+      btnDelete.style.marginLeft = '4px';
+      btnDelete.onclick = function() {
+        deleteItem(item.name);
       };
 
       tdAction.appendChild(btnTake);
       tdAction.appendChild(btnReset);
+      tdAction.appendChild(btnDelete);
 
       tr.appendChild(tdName);
       tr.appendChild(tdStock);
