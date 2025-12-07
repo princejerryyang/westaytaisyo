@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>消耗品库存记录表</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+      background: #f5f5f7;
+      color: #111827;
+    }
+    .app {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    h1 {
+      font-size: 1.4rem;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      font-size: 0.9rem;
+      color: #6b7280;
+      margin-bottom: 16px;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 12px 14px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+      margin-bottom: 16px;
+    }
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .field {
+      flex: 1 1 90px;
+      min-width: 90px;
+    }
+    .field label {
+      display: block;
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+    .field input {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .field input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.2);
+    }
+    button.primary {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      background: #2563eb;
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 18px;
+      flex-shrink: 0;
+    }
+    button.primary:active {
+      opacity: 0.8;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    thead {
+      background: #f3f4f6;
+    }
+    th, td {
+      padding: 8px 6px;
+      text-align: center;
+      border-bottom: 1px solid #e5e7eb;
+      white-space: nowrap;
+    }
+    th {
+      font-weight: 600;
+      color: #4b5563;
+      position: sticky;
+      top: 0;
+      background: #f3f4f6;
+      z-index: 1;
+    }
+    tr.low-stock {
+      background: #fef2f2;
+      color: #b91c1c;
+    }
+    tr.low-stock td.stock {
+      font-weight: 700;
+    }
+    .qty-input {
+      width: 72px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      font-size: 0.85rem;
+    }
+    .btn-small {
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: none;
+      background: #10b981;
+      color: #ffffff;
+      font-size: 0.8rem;
+      cursor: pointer;
+      margin-top: 2px;
+    }
+    .btn-small.secondary {
+      background: #6b7280;
+    }
+    .btn-small:active {
+      opacity: 0.85;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      color: #374151;
+      background: #e5e7eb;
+    }
+    .footer-note {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.2rem;
+      }
+      .card {
+        padding: 10px 10px;
+      }
+      th, td {
+        padding: 6px 4px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <h1>消耗品库存记录表</h1>
+  <div class="subtitle">
+    库存 ≤ 安全库存时，该行会自动变红，请在群里提醒采购。
+  </div>
+
+  <div class="card">
+    <div class="form-row">
+      <div class="field">
+        <label>品名（例如：卷纸）</label>
+        <input id="nameInput" type="text" placeholder="卷纸 / 抽纸 / 洗衣液…" />
+      </div>
+      <div class="field">
+        <label>当前库存数量</label>
+        <input id="stockInput" type="number" min="0" placeholder="例如：50" />
+      </div>
+      <div class="field">
+        <label>安全库存（提醒阈值）</label>
+        <input id="thresholdInput" type="number" min="0" placeholder="例如：10" />
+      </div>
+      <button class="primary" id="addBtn">新增/更新品项</button>
+    </div>
+    <div class="footer-note">
+      提示：同名品项会被视为同一行，填写后会“更新”该品项的库存与安全库存。
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+        <tr>
+          <th>品名</th>
+          <th>当前库存</th>
+          <th>安全库存</th>
+          <th>确认出库</th>
+          <th>操作</th>
+        </tr>
+        </thead>
+        <tbody id="tableBody">
+        <!-- 动态插入 -->
+        </tbody>
+      </table>
+    </div>
+    <div class="footer-note">
+      每次从库房拿东西时，只需要在“确认出库”里填数量 → 点“确认出库”。<br>
+      库存低于安全库存时，该行会变红，表示需要尽快采购。
+    </div>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'westay_inventory_v1';
+
+  let items = [];
+
+  function loadItems() {
+    const data = localStorage.getItem(STORAGE_KEY);
+    if (data) {
+      try {
+        items = JSON.parse(data);
+      } catch (e) {
+        items = [];
+      }
+    } else {
+      // 可以预设几个常用项
+      items = [
+        { name: '卷纸', stock: 50, threshold: 10 },
+        { name: '抽纸', stock: 20, threshold: 5 },
+        { name: '垃圾袋', stock: 10, threshold: 5 }
+      ];
+    }
+    renderTable();
+  }
+
+  function saveItems() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  }
+
+  function addOrUpdateItem() {
+    const name = document.getElementById('nameInput').value.trim();
+    const stockVal = document.getElementById('stockInput').value;
+    const thresholdVal = document.getElementById('thresholdInput').value;
+
+    if (!name) {
+      alert('请先填写品名');
+      return;
+    }
+    const stock = Number(stockVal);
+    const threshold = Number(thresholdVal);
+
+    if (Number.isNaN(stock) || stock < 0) {
+      alert('请填写正确的库存数量');
+      return;
+    }
+    if (Number.isNaN(threshold) || threshold < 0) {
+      alert('请填写正确的安全库存数量');
+      return;
+    }
+
+    const existing = items.find(i => i.name === name);
+    if (existing) {
+      existing.stock = stock;
+      existing.threshold = threshold;
+    } else {
+      items.push({ name, stock, threshold });
+    }
+
+    saveItems();
+    renderTable();
+
+    document.getElementById('nameInput').value = '';
+    document.getElementById('stockInput').value = '';
+    document.getElementById('thresholdInput').value = '';
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+
+    if (items.length === 0) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 5;
+      td.textContent = '尚无品项，请先在上方添加。';
+      td.style.color = '#9ca3af';
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+
+    items.forEach((item, index) => {
+      const tr = document.createElement('tr');
+      if (item.stock <= item.threshold) {
+        tr.classList.add('low-stock');
+      }
+
+      const tdName = document.createElement('td');
+      tdName.textContent = item.name;
+
+      const tdStock = document.createElement('td');
+      tdStock.textContent = item.stock;
+      tdStock.classList.add('stock');
+
+      const tdThr = document.createElement('td');
+      tdThr.textContent = item.threshold;
+
+      const tdTake = document.createElement('td');
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.min = '0';
+      input.placeholder = '数量';
+      input.className = 'qty-input';
+      tdTake.appendChild(input);
+
+      const tdAction = document.createElement('td');
+      const btnTake = document.createElement('button');
+      btnTake.className = 'btn-small';
+      btnTake.textContent = '确认出库';
+      btnTake.onclick = () => {
+        const val = Number(input.value);
+        if (!val || val <= 0) return;
+        if (val > item.stock) {
+          alert('出库数量大于当前库存，请确认。');
+          return;
+        }
+        item.stock -= val;
+        input.value = '';
+        saveItems();
+        renderTable();
+      };
+
+      const btnReset = document.createElement('button');
+      btnReset.className = 'btn-small secondary';
+      btnReset.textContent = '修改库存';
+      btnReset.style.marginLeft = '4px';
+      btnReset.onclick = () => {
+        // 行内编辑模式：在本行下方出现“入库 / 修改安全库存”
+        if (tdAction.querySelector('.edit-stock-wrapper')) {
+          const inInput = tdAction.querySelector('.stock-in-input');
+          if (inInput) inInput.focus();
+          return;
+        }
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'edit-stock-wrapper';
+        wrapper.style.marginTop = '6px';
+        wrapper.style.borderTop = '1px dashed #e5e7eb';
+        wrapper.style.paddingTop = '4px';
+
+        // 入库部分
+        const rowIn = document.createElement('div');
+        rowIn.style.marginTop = '2px';
+
+        const labelIn = document.createElement('span');
+        labelIn.textContent = '入库数量:';
+        labelIn.style.fontSize = '0.75rem';
+        labelIn.style.marginRight = '4px';
+
+        const inInput = document.createElement('input');
+        inInput.type = 'number';
+        inInput.min = '0';
+        inInput.placeholder = '数量';
+        inInput.className = 'qty-input stock-in-input';
+        inInput.style.width = '68px';
+
+        const inBtn = document.createElement('button');
+        inBtn.textContent = '入库';
+        inBtn.className = 'btn-small';
+        inBtn.style.marginLeft = '4px';
+
+        inBtn.onclick = () => {
+          const addVal = Number(inInput.value);
+          if (!addVal || addVal <= 0) return;
+          if (Number.isNaN(addVal)) {
+            alert('请输入正确的数字');
+            return;
+          }
+          item.stock += addVal;
+          saveItems();
+          renderTable();
+        };
+
+        rowIn.appendChild(labelIn);
+        rowIn.appendChild(inInput);
+        rowIn.appendChild(inBtn);
+
+        // 修改安全库存部分
+        const rowThr = document.createElement('div');
+        rowThr.style.marginTop = '4px';
+
+        const labelThr = document.createElement('span');
+        labelThr.textContent = '安全库存:';
+        labelThr.style.fontSize = '0.75rem';
+        labelThr.style.marginRight = '4px';
+
+        const thrInput = document.createElement('input');
+        thrInput.type = 'number';
+        thrInput.min = '0';
+        thrInput.value = item.threshold;
+        thrInput.className = 'qty-input';
+        thrInput.style.width = '68px';
+
+        const thrBtn = document.createElement('button');
+        thrBtn.textContent = '修改安全库存';
+        thrBtn.className = 'btn-small';
+        thrBtn.style.marginLeft = '4px';
+
+        thrBtn.onclick = () => {
+          const newThr = Number(thrInput.value);
+          if (Number.isNaN(newThr) || newThr < 0) {
+            alert('请输入正确的数字');
+            return;
+          }
+          item.threshold = newThr;
+          saveItems();
+          renderTable();
+        };
+
+        rowThr.appendChild(labelThr);
+        rowThr.appendChild(thrInput);
+        rowThr.appendChild(thrBtn);
+
+        // 取消按钮（关闭整个编辑块）
+        const cancelRow = document.createElement('div');
+        cancelRow.style.marginTop = '4px';
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.textContent = '关闭';
+        cancelBtn.className = 'btn-small secondary';
+
+        cancelBtn.onclick = () => {
+          wrapper.remove();
+        };
+
+        cancelRow.appendChild(cancelBtn);
+
+        wrapper.appendChild(rowIn);
+        wrapper.appendChild(rowThr);
+        wrapper.appendChild(cancelRow);
+        tdAction.appendChild(wrapper);
+        inInput.focus();
+      };
+
+      tdAction.appendChild(btnTake);
+      tdAction.appendChild(btnReset);
+
+      tr.appendChild(tdName);
+      tr.appendChild(tdStock);
+      tr.appendChild(tdThr);
+      tr.appendChild(tdTake);
+      tr.appendChild(tdAction);
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  document.getElementById('addBtn').addEventListener('click', addOrUpdateItem);
+  loadItems();
+</script>
+</body>
+</html>
