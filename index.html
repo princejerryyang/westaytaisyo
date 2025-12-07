@@ -421,6 +421,8 @@
   }
 
   document.getElementById('addBtn').addEventListener('click', addOrUpdateItem);
+  // 每 20 秒自动从 Google Sheet 重新获取一次最新库存
+  setInterval(loadItems, 20000);
   loadItems();
 </script>
 </body>
