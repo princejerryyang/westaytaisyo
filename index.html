@@ -92,15 +92,13 @@
       margin-top: 2px;
     }
     .btn-small.secondary { background: #6b7280; }
+    .btn-small.danger { background: #ef4444; }
     .btn-small:active { opacity: 0.85; }
     .footer-note { font-size: 0.75rem; color: #9ca3af; margin-top: 8px; }
     @media (max-width: 600px) {
       h1 { font-size: 1.2rem; }
       .card { padding: 10px 10px; }
       th, td { padding: 6px 4px; }
-    }
-      .btn-small.danger {
-      background: #ef4444;
     }
   </style>
 </head>
@@ -230,6 +228,25 @@
   function deleteItem(name) {
     if (!confirm('确定要删除「' + name + '」这个品项吗？')) return;
     items = items.filter(function(i) { return i.name !== name; });
+    syncItems();
+    renderTable();
+  }
+
+  function renameItem(oldName) {
+    var newName = prompt('请输入新的品名：', oldName);
+    if (newName === null) return; // 取消
+    newName = newName.trim();
+    if (!newName) {
+      alert('品名不能为空');
+      return;
+    }
+    if (items.some(function(i) { return i.name === newName && i.name !== oldName; })) {
+      alert('已经存在同名品项，请使用其他名称。');
+      return;
+    }
+    var target = items.find(function(i) { return i.name === oldName; });
+    if (!target) return;
+    target.name = newName;
     syncItems();
     renderTable();
   }
@@ -398,6 +415,14 @@
         inInput2.focus();
       };
 
+      var btnRename = document.createElement('button');
+      btnRename.className = 'btn-small secondary';
+      btnRename.textContent = '修改品名';
+      btnRename.style.marginLeft = '4px';
+      btnRename.onclick = function() {
+        renameItem(item.name);
+      };
+
       var btnDelete = document.createElement('button');
       btnDelete.className = 'btn-small danger';
       btnDelete.textContent = '删除品项';
@@ -408,6 +433,7 @@
 
       tdAction.appendChild(btnTake);
       tdAction.appendChild(btnReset);
+      tdAction.appendChild(btnRename);
       tdAction.appendChild(btnDelete);
 
       tr.appendChild(tdName);
